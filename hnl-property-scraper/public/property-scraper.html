@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UHERO Analytics - Property Data Scraper</title>
+    <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/bower_components/components-font-awesome/css/font-awesome.min.css">
+    <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <style>
+        .top-buffer {
+            margin-top: 20px;
+        }
+
+        .bottom-buffer {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="jumbotron">
+            <h1>UHERO Analytics <small>Property Data Scraper</small></h1>
+            <p>Request a CSV with property data by entering a list of addresses. Enter addresses, one address per line.</p>
+        </div>
+    </div>
+    <div class="row top-buffer">
+        <form id="addressForm">
+            <div class="form-group">
+                <label for="addresses">List of Addresses</label>
+                <textarea id="addresses" class="form-control" rows="6" placeholder="List of Addresses"></textarea>
+            </div>
+            <button id="collectData" type="button" class="btn btn-primary">Collect Property Data</button>
+        </form>
+
+    </div>
+
+    <div class="row top-buffer">
+        <div id="errorMessage" class="alert alert-danger" style="display:none;">
+            Error
+        </div>
+    </div>
+
+    <div class="row top-buffer">
+        <div class="progress" style="display:none;">
+            <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;">
+                60%
+            </div>
+        </div>
+    </div>
+
+    <div class="row top-buffer bottom-buffer">
+        <div id="downloadLink" style="display:none;">
+            <a href=""><i class="fa fa-file-excel-o" aria-hidden="true"></i> Download CSV</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $(function() {
+        console.log('jQuery has landed');
+        $('#collectData').click(function() {
+            var addresses = $('#addresses').val().trim().split('\n'),
+                progressInterval;
+            console.log(addresses);
+            $.ajax('/', {
+                method: 'POST',
+                processData: false,
+                data: JSON.stringify(addresses),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.hasOwnProperty('id')) {
+                        console.log('filename: ' + data.id);
+                        progressInterval = window.setInterval(function() {
+                            $.get(`/progress/${data.id}`, function(intervalData) {
+                                console.log(intervalData);
+                                if (intervalData.hasOwnProperty('error')) {
+                                    console.log(intervalData.error);
+                                    var errorMessage = $('#errorMessage');
+                                    $('#downloadLink').hide();
+                                    $('.progress').hide();
+                                    errorMessage.show();
+                                    errorMessage.html(`<p><strong>ERROR:</strong> ${intervalData.errorMessage}</p><pre>${intervalData.error}</pre>`);
+                                    return;
+                                }
+                                if (intervalData.hasOwnProperty('complete')) {
+                                    var downloadLink = $('#downloadLink');
+                                    window.clearInterval(progressInterval);
+                                    $('.progress').hide();
+                                    $('#errorMessage').hide();
+                                    downloadLink.show();
+                                    downloadLink.children('a').attr('href', `/file/${data.id}.csv`);
+                                    return;
+                                }
+                                if (intervalData.hasOwnProperty('addressCount') && intervalData.hasOwnProperty('addressesCompleted')) {
+                                    var percent = Math.floor(intervalData.addressesCompleted / intervalData.addressCount * 100);
+                                    $('#errorMessage').hide();
+                                    $('#downloadLink').hide();
+                                    $('.progress').show().children('.progress-bar')
+                                            .attr('aria-valuenow', percent)
+                                            .css('width', `${percent}%`)
+                                            .html(`${intervalData.addressesCompleted} / ${intervalData.addressCount}`);
+                                }
+                            });
+                        }, 500);
+                    }
+                },
+                error: function(data) {
+                    console.log(data);
+
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

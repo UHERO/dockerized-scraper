@@ -1,0 +1,22 @@
+{
+  "name": "property-scraper",
+  "description": "Simple server for scraping property data from the Honolulu assessor web site.",
+  "main": "property-scraper.html",
+  "authors": [
+    "UHERO"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/UHERO/prototypes",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6",
+    "components-font-awesome": "^4.6.3"
+  }
+}
