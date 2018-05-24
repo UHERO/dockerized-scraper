@@ -1,0 +1,11 @@
+version: "3"
+services:
+  rest:
+    image: restimage
+    replicas: 1
+    ports:
+      - "8000"
+
+  scraper:
+    image: scrimage
+    replicas: 20
