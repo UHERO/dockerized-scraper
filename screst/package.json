@@ -4,7 +4,7 @@
   "description": "REST API on Node.js",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
+    "start": "nodemon server.js",
     "test": "test"
   },
   "repository": {
@@ -15,9 +15,11 @@
   "license": "MIT",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "circular-json": "^0.5.4",
     "express": "^4.16.3",
+    "flatted": "^0.2.2",
     "mongodb": "^3.0.7",
-    "npm": "^6.0.0"
+    "npm": "^6.1.0"
   },
   "devDependencies": {
     "nodemon": "^1.17.3"

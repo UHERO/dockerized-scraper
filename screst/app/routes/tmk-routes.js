@@ -7,21 +7,18 @@ module.exports = function(app, db) {
 
     parsingDeadline.setMonth(parsingDeadline.getMonth() - 2);
 
-    console.log(parsingDeadline);
-
-    db.collection('shorttmks').find({ $or: [{parsed: false}, {lastParsed: {$lte: parsingDeadline}}]}, (err, tmks) => {
-      if (err) {
-        res.send({'error': 'An error has occurred'});
-      } else {
-        tmks.limit(7000).toArray((err, tmks) => {
-          if (err) {
-            res.send({error: err});
-          } else {
-            res.send({data: tmks});
-          }
-        });
+    db.collection('shorttmks').findAndModify(
+      {$or: [{parsed: false}, {lastParsed: {$lte: parsingDeadline}}]},
+      [['lastParsed', 'asc']],
+      { $set: { parsed: true, lastParsed: new Date() } },
+      (err, tmk) => {
+        if (err) {
+          res.send({error: err});
+        } else {
+          res.send({data: tmk.value});
+        }
       }
-    });
+    );
   });
 
   app.post('/shorttmks/:id', (req, res) => {
@@ -48,3 +45,5 @@ module.exports = function(app, db) {
     });
   });
 };
+
+// forEach( (tmk) => {tmk.parsed = true; db.collection('shorttmks').save(tmk); }).
