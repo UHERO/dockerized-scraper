@@ -181,6 +181,7 @@ function processTMK(link, self) {
 
     this.each(links, function (self, link) {
       console.log('link in process: ', link);
+
       self.thenOpen('http:' + link, function () {
         // TODO check if link is already present in the database
 
@@ -234,6 +235,6 @@ function parse(N) {
   casper.run();
 }
 
-var N = 2000;
+var N = 20000;
 
 parse(N);
