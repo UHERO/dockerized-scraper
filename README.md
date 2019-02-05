@@ -5,6 +5,8 @@ This software scrapes Honolulu county permitting data and stores it in the Mongo
 
 ## How to use
 
+0. `git clone https://github.com/alestainer/dockerized-scraper'
+
 1. Run `npm install` in both hnl_property_scraper and screst folders 
 
 2. Install Docker from https://www.docker.com/get-docker
