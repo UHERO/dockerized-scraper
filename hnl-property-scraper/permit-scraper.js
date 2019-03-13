@@ -130,181 +130,111 @@ var posseButtons = {
     occupancyResidential: 'input[id^="OccupancyGroupResidential_713850_"]',
 };
 
-function camelize(str) {
-    return str.trim().replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
-        if (+match === 0) return ''; // or if (/\s+/.test(match)) for white spaces
-            return index === 0 ? match.toLowerCase() : match.toUpperCase();
-        });
-}
+function processTMK(link, self) {
+  var posseId = 0;
 
-function postPermit(appNumber, data) {
-  casper.start();
-  var postAddress = 'http://localhost:8000/permits/' + String(appNumber);
+  var tmk = String(link.TMK);
 
-  casper.then( function() {
-    casper.open(postAddress, {
-      method: 'post',
-      data: data // this data is json of a permit
-    });
+  var form = {};
+
+  self.thenOpen('http://dppweb.honolulu.gov/DPPWeb/Default.aspx?PossePresentation=PropertySearch');
+
+  self.waitForSelector('span#TMK_713880_S0_sp', function () {
+    this.echo('tmk is ' + tmk);
+    this.fillSelectors('span#TMK_713880_S0_sp', {
+      'input[name="TMK_713880_S0"]': tmk,
+    }, false);
+  }, function () {
+    result = false;
+    console.log('DPP search page timeout' + tmk);
+  }, 10000);
+
+  self.waitForSelector('a#ctl00_cphBottomFunctionBand_ctl05_PerformSearch', function () {
+    this.click('a#ctl00_cphBottomFunctionBand_ctl05_PerformSearch');
   });
 
-  casper.run();
-}
-
-function postTmk(tmk, result) {
-  casper.start();
-
-  var postAddress = 'http://localhost:8000/tmks/' + String(tmk);
-
-  casper.then( function() {
-    casper.open(postAddress, {
-      method: 'post',
-      data: {'body': String(result)} // this data is json of a permit
-    });
+  self.then(function () {
+    var addr = this.getCurrentUrl();
+    posseId = addr.slice(addr.lastIndexOf('=') + 1);
+    form['posseId'] = posseId;
   });
-
-  casper.run();
-}
-
-function parse() {
-
-  casper.start();
-
-  var allTmks = [];
-
-  casper.then( function () {
-    casper.open('http://localhost:8000/shorttmks/?num=2', {
-      method: 'get',
-      enctype: 'application/json'
-    });
-  });
-
-  casper.then( function () {
-    allTmks = JSON.parse(casper.getPageContent()).data;
-  });
-
-  casper.then( function () {
-
-    casper.echo(allTmks.length);
-
-    casper.each(allTmks, function (self, link) {
-
-      var posseId = 0;
-
-      var tmk = String(link.TMK);
-
-      console.log(tmk);
-
-      var form = {};
-
-      var result = false;
-
-      self.thenOpen('http://dppweb.honolulu.gov/DPPWeb/Default.aspx?PossePresentation=PropertySearch');
-
-      self.waitForSelector('span#TMK_713880_S0_sp', function () {
-        this.echo('tmk is ' + tmk);
-        this.fillSelectors('span#TMK_713880_S0_sp', {
-          'input[name="TMK_713880_S0"]': tmk,
-        }, false);
-      }, function () {
-        console.log('DPP search page timeout' + tmk);
-      }, 10000);
-
-      self.then(function () {
-        this.click('a#ctl00_cphBottomFunctionBand_ctl05_PerformSearch');
-      });
-
-      self.then(function () {
-        var addr = this.getCurrentUrl();
-        posseId = addr.slice(addr.lastIndexOf('=') + 1);
-        form['posseId'] = posseId;
-      });
 
 // Parsing basic info
-      self.then(function () {
-        for (var key in basicSelectorDictionary) {
-          form[key] = this.fetchText(basicSelectorDictionary[key]);
-        }
-      });
+  self.then(function () {
+    for (var key in basicSelectorDictionary) {
+      form[key] = this.fetchText(basicSelectorDictionary[key]);
+    }
+  });
 
 // Getting to the permits page
-      self.then(function () {
-        if (this.exists('a#ctl00_cphTopBand_ctl03_hlkTabLink')) {
-          this.click('a#ctl00_cphTopBand_ctl03_hlkTabLink');
+  self.waitForSelector('a#ctl00_cphTopBand_ctl03_hlkTabLink', function () {
+    if (this.exists('a#ctl00_cphTopBand_ctl03_hlkTabLink')) {
+      this.click('a#ctl00_cphTopBand_ctl03_hlkTabLink');
+    } else {
+      result = false;
+    }
+  });
+
+  self.then(function () {
+
+    var links = this.getElementsAttribute('a[href*="BuildingPermit&PosseObjectId"]', 'href');
+
+    this.each(links, function (self, link) {
+      console.log('link in process: ', link);
+
+      self.thenOpen('http:' + link, function () {
+        // TODO check if link is already present in the database
+
+        var permit = form;
+
+        permit['link'] = link;
+        // Parsing the permit
+        for (var key in posseSelectorDictionary) {
+          permit[key] = this.fetchText(posseSelectorDictionary[key]);
         }
-      });
+        for (var key in posseButtons) {
+          permit[key] = this.getElementAttribute(posseButtons[key], 'value');
+        }
+        console.log('Collected permit: ', permit.applicationNumber);
 
-      self.then(function () {
+        var postAddress = process.env.DOCKER_SERVER + '/permits/' + String(permit.applicationNumber);
 
-        var links = this.getElementsAttribute('a[href*="BuildingPermit&PosseObjectId"]', 'href');
-
-        this.each(links, function (self, link) {
-          console.log('link in process: ', link);
-          self.thenOpen('http:' + link, function() {
-            // TODO check if link is already present in the database
-
-            var permit = form;
-
-            permit['link'] = link;
-            // Parsing the permit
-            for (var key in posseSelectorDictionary) {
-              permit[key] = this.fetchText(posseSelectorDictionary[key]);
-            }
-            for (var key in posseButtons) {
-              permit[key] = this.getElementAttribute(posseButtons[key], 'value');
-            }
-            console.log('Collected permit: ', permit.applicationNumber);
-
-            var postAddress = 'http://localhost:8000/permits/' + String(permit.applicationNumber);
-
-            this.then( function() {
-              this.thenOpen(postAddress, {
-                method: 'post',
-                data: permit // this data is json of a permit
-              });
-            });
-            //postPermit(permit.applicationNumber, permit);
+        this.then(function () {
+          this.thenOpen(postAddress, {
+            method: 'post',
+            data: permit // this data is json of a permit
           });
         });
       });
-
-      result = true;
-
-      var postAddress = 'http://localhost:8000/shorttmks/' + String(tmk);
-
-      self.then( function() {
-        this.thenOpen(postAddress, {
-          method: 'post',
-          data: {'body': String(result)} // this data is a result of the process
-        });
-      });
     });
   });
-
-  // var casper = require('casper').create();
-
-
-  casper.run();
 }
 
-function parseBunch(num) {
-  var reqLink = 'http://localhost:8000/tmks/?num=' + String(num);
+function parse(N) {
 
   casper.start();
 
   casper.then( function () {
-    casper.open(reqLink, {
-      method: 'get',
-      enctype: 'application/json'
-    }).then( function () {
-      tmks = JSON.parse(casper.getPageContent());
-      parse(tmks.data);
+
+    casper.each(Array.apply(null, {length: N}).map(Number.call, Number), function (self, _) {
+
+      var link = '';
+
+      var postLink = process.env.DOCKER_SERVER + '/shorttmks';
+
+      self.thenOpen( postLink, {
+          method: 'get',
+          enctype: 'application/json'
+      },  function () {
+        link = JSON.parse(casper.getPageContent()).data;
+        processTMK(link, self);
+      });
     });
   });
 
   casper.run();
 }
 
-parse();
+var N = 20000;
 
-// Search by TMK from the main page
+parse(N);

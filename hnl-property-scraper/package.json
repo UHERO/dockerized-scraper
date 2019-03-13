@@ -4,8 +4,7 @@
   "description": "Simple server for scraping property data from the Honolulu assessor web site.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "scrape": "node node_modules/casperjs/bin/casperjs.js permit-scraper.js",
+    "start": "node node_modules/casperjs/bin/casperjs.js permit-scraper.js",
     "test": "mocha"
   },
   "author": "UHERO",
