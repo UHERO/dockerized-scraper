@@ -15,12 +15,12 @@ This software scrapes Honolulu county permitting data and stores it in the Mongo
 
 4. Create environment variables MONGO_URL, MONGO_USER, MONGO_PASS, and DOCKER_SERVER using your own credentials, address of your MongoDB instance, and docker machine ip you got from the previous step.
 
-5a. In hnl-property-scraper folder run `docker build -t scrimage .`
+5. In hnl-property-scraper folder run `docker build -t scrimage .`
 
-5b. In screst folder run `docker build -t restimage .`
+6. In screst folder run `docker build -t restimage .`
 
-6. In docker console `docker swarm init --advertise-addr $DOCKER_SERVER`
+7. In docker console `docker swarm init --advertise-addr $DOCKER_SERVER`
 
-7. `docker stack deploy -c docker-compose.yml scaledScraper`
+8. `docker stack deploy -c docker-compose.yml scaledScraper`
 
-8. To check the workers `docker service logs scaledScraper_scraper`
+9. To check the workers `docker service logs scaledScraper_scraper`
