@@ -14,6 +14,8 @@ var casper = require('casper').create({
   }
 });
 
+var envs = require('system').env;
+
 var basicSelectorDictionary = {
   developmentPlanAreas: 'span[id^="Description_713925_734875"]',
   floodZones: 'span[id^="Description_713925_734356"]',
@@ -197,7 +199,7 @@ function processTMK(link, self) {
         }
         console.log('Collected permit: ', permit.applicationNumber);
 
-        var postAddress = process.env.DOCKER_SERVER + '/permits/' + String(permit.applicationNumber);
+        var postAddress = envs.DOCKER_SERVER + '/permits/' + String(permit.applicationNumber);
 
         this.then(function () {
           this.thenOpen(postAddress, {
@@ -220,7 +222,7 @@ function parse(N) {
 
       var link = '';
 
-      var postLink = process.env.DOCKER_SERVER + '/shorttmks';
+      var postLink = envs.DOCKER_SERVER + '/shorttmks';
 
       self.thenOpen( postLink, {
           method: 'get',
