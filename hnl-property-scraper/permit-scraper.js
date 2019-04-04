@@ -74,18 +74,18 @@ var posseSelectorDictionary = {
   numberRoomsDeleted: 'span[id^="NumRoomsDel_713848_"]',
   locationPermitCreated: 'span[id^="LocationJobCreated_713848_"]',
   locationPermitIssued: 'span[id^="LocationPermitIssued_713848_"]',
-    otherWork: 'span[id^="OtherWork_713849_"]',
-    drivewayTypes: 'span[id^="DrivewayTypes_713850_"]',
-    lenOfDriveway: 'span[id^="DrivewayLength_713850_"]',
-    sidewalkTypes: 'span[id^="SidewalkTypes_713850_"]',
-    lenOfSidewalk: 'span[id^="SidewalkLength_713850_"]',
-    curbingTypes: 'span[id^="CurbingTypes_713850_"]',
-    lenOfCurbing: 'span[id^="CurbingLength_713850_"]',
-    numShowersToReplace: 'span[id^="ShowerCount_713850_"]',
-    numFaucetsToReplace: 'span[id^="FaucetCount_713850_"]',
-    numUrinalsToReplace: 'span[id^="UrinalNotobeReplaced_713850_"]',
-    numToiletsToReplace: 'span[id^="ToiletCount_713850_"]',
-    sewerConnectionPermitNo: 'span[id^="SewerConnPermitNo_713850_"]',
+  otherWork: 'span[id^="OtherWork_713849_"]',
+  drivewayTypes: 'span[id^="DrivewayTypes_713850_"]',
+  lenOfDriveway: 'span[id^="DrivewayLength_713850_"]',
+  sidewalkTypes: 'span[id^="SidewalkTypes_713850_"]',
+  lenOfSidewalk: 'span[id^="SidewalkLength_713850_"]',
+  curbingTypes: 'span[id^="CurbingTypes_713850_"]',
+  lenOfCurbing: 'span[id^="CurbingLength_713850_"]',
+  numShowersToReplace: 'span[id^="ShowerCount_713850_"]',
+  numFaucetsToReplace: 'span[id^="FaucetCount_713850_"]',
+  numUrinalsToReplace: 'span[id^="UrinalNotobeReplaced_713850_"]',
+  numToiletsToReplace: 'span[id^="ToiletCount_713850_"]',
+  sewerConnectionPermitNo: 'span[id^="SewerConnPermitNo_713850_"]',
 };
 
 var posseButtons = {
@@ -185,7 +185,6 @@ function processTMK(link, self) {
       console.log('link in process: ', link);
 
       self.thenOpen('http:' + link, function () {
-        // TODO check if link is already present in the database
 
         var permit = form;
 
@@ -199,7 +198,7 @@ function processTMK(link, self) {
         }
         console.log('Collected permit: ', permit.applicationNumber);
 
-        var postAddress = envs.DOCKER_SERVER + '/permits/' + String(permit.applicationNumber);
+        var postAddress = 'rest:8081/permits/' + String(permit.applicationNumber);
 
         this.then(function () {
           this.thenOpen(postAddress, {
@@ -218,16 +217,18 @@ function parse(N) {
 
   casper.then( function () {
 
-    casper.each(Array.apply(null, {length: N}).map(Number.call, Number), function (self, _) {
+    casper.each(Array.apply(null, {length: N}).map(Number.call, Number), function (self) {
 
       var link = '';
 
-      var postLink = envs.DOCKER_SERVER + '/shorttmks';
+      var postLink = 'rest:8081/shorttmks';
 
+      console.log(postLink);
       self.thenOpen( postLink, {
           method: 'get',
           enctype: 'application/json'
       },  function () {
+        console.log(casper.getPageContent());
         link = JSON.parse(casper.getPageContent()).data;
         processTMK(link, self);
       });

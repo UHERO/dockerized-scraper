@@ -1,4 +1,5 @@
 version: "3"
+
 services:
   rest:
     image: restimage
@@ -14,9 +15,7 @@ services:
 
   scraper:
     image: scrimage
-    links:
-      - "restimage:rest"
     depends_on:
-      - "rest"
+      - rest
     deploy:
-      replicas: 10
+      replicas: 1
