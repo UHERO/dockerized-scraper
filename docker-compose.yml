@@ -1,21 +1,28 @@
-version: "3"
+version: "3.0"
 
 services:
   rest:
-    image: restimage
+    image: restimage:latest
     environment:
       - "MONGO_USER=${MONGO_USER}"
       - "MONGO_URL=${MONGO_URL}"
       - "MONGO_PASS=${MONGO_PASS}"
       - "DOCKER_SERVER=${DOCKER_SERVER}"
-    deploy:
-      replicas: 1
+    networks:
+      test:
+        aliases:
+          - rest
     ports:
       - "8081:8081"
 
   scraper:
-    image: scrimage
+    image: scrimage:latest
+    networks:
+      - test
     depends_on:
       - rest
     deploy:
       replicas: 1
+
+networks:
+  test:
