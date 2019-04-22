@@ -198,7 +198,7 @@ function processTMK(link, self) {
         }
         console.log('Collected permit: ', permit.applicationNumber);
 
-        var postAddress = 'rest:8081/permits/' + String(permit.applicationNumber);
+        var postAddress = envs.REST + '/permits/' + String(permit.applicationNumber);
 
         this.then(function () {
           this.thenOpen(postAddress, {
@@ -221,9 +221,8 @@ function parse(N) {
 
       var link = '';
 
-      var postLink = 'rest:8081/shorttmks';
+      var postLink = envs.REST + '/shorttmks';
 
-      console.log(postLink);
       self.thenOpen( postLink, {
           method: 'get',
           enctype: 'application/json'
