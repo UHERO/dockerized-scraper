@@ -4,13 +4,6 @@ services:
   scraper:
     image: scrimage:latest
     environment:
-      REST: 'locahost:8081'
-    networks:
-      hostnet: {}
+      REST: '172.17.0.1:8081'
     deploy:
       replicas: 1
-
-networks:
-  hostnet:
-    external: true
-    name: host
