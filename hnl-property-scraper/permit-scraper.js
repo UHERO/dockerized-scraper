@@ -223,7 +223,7 @@ function parse(N) {
 
       var postLink = envs.REST + '/shorttmks';
 
-      self.thenOpen( postLink, {
+      self.thenOpen(postLink, {
           method: 'get',
           enctype: 'application/json'
       },  function () {
@@ -237,6 +237,5 @@ function parse(N) {
   casper.run();
 }
 
-var N = 20000;
-
+var N = 2000;
 parse(N);

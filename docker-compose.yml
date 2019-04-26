@@ -1,28 +1,15 @@
-version: "3.0"
+version: "3"
 
 services:
-  rest:
-    image: restimage:latest
-    environment:
-      - "MONGO_USER=${MONGO_USER}"
-      - "MONGO_URL=${MONGO_URL}"
-      - "MONGO_PASS=${MONGO_PASS}"
-      - "DOCKER_SERVER=${DOCKER_SERVER}"
-    networks:
-      test:
-        aliases:
-          - rest
-    ports:
-      - "8081:8081"
-
   scraper:
     image: scrimage:latest
+    environment:
+      - REST=http://192.168.0.1:8081
     networks:
-      - test
-    depends_on:
-      - rest
+      - mynet
     deploy:
-      replicas: 1
+      replicas: 3
 
 networks:
-  test:
+  mynet:
+    external: true
