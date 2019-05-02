@@ -227,7 +227,6 @@ function parse(N) {
           method: 'get',
           enctype: 'application/json'
       },  function () {
-        console.log(casper.getPageContent());
         link = JSON.parse(casper.getPageContent()).data;
         processTMK(link, self);
       });
@@ -237,5 +236,5 @@ function parse(N) {
   casper.run();
 }
 
-var N = 2000;
+var N = 20000;
 parse(N);
