@@ -19,4 +19,4 @@ services:
     depends_on:
       - "rest"
     deploy:
-      replicas: 20
+      replicas: 3

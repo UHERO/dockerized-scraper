@@ -1,13 +1,11 @@
 # dockerized-scraper
 
 ## Description
-This software scrapes Honolulu county permitting data and stores it in the MongoDB instance.
+This software scrapes building permit data and stores it in a MongoDB instance.
 
 ## How to use
 
-0. `git clone https://github.com/alestainer/dockerized-scraper'
-
-1. Run `npm install` in both hnl_property_scraper and screst folders 
+1. Run `npm install` in both property_scraper and screst folders 
 
 2. Install Docker from https://www.docker.com/get-docker
 
@@ -15,7 +13,7 @@ This software scrapes Honolulu county permitting data and stores it in the Mongo
 
 4. Create environment variables MONGO_URL, MONGO_USER, MONGO_PASS, and DOCKER_SERVER using your own credentials, address of your MongoDB instance, and docker machine ip you got from the previous step.
 
-5. In hnl-property-scraper folder run `docker build -t scrimage .`
+5. In property-scraper folder run `docker build -t scrimage .`
 
 6. In screst folder run `docker build -t restimage .`
 
