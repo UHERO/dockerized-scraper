@@ -1,14 +1,16 @@
+const ObjectID = require('mongodb').ObjectID;
+
 module.exports = function(app, db) {
   app.get('/shorttmks', (req, res) => {
+    // const num = parseInt(req.query.num, 10);
     const parsingDeadline = new Date();
 
-    parsingDeadline.setMonth(parsingDeadline.getMonth() - 1);
+    parsingDeadline.setMonth(parsingDeadline.getMonth() - 2);
 
     db.collection('shorttmks').findAndModify(
       {$or: [{parsed: false}, {lastParsed: {$lte: parsingDeadline}}]},
       [['lastParsed', 'asc']],
       { $set: { parsed: true, lastParsed: new Date() } },
-      {},
       (err, tmk) => {
         if (err) {
           res.send({error: err});
@@ -22,7 +24,6 @@ module.exports = function(app, db) {
   app.post('/shorttmks/:id', (req, res) => {
     const id = req.params.id;
     const note = {TMK: Number(id), parsed: req.body.body, lastParsed: new Date() };
-    // const details = {'_id': new ObjectID(id)};
     db.collection('shorttmks').update({TMK: Number(id)}, note, {upsert: true}, (err) => {
       if (err) {
         res.send({'error': 'An error has occurred: ', err});

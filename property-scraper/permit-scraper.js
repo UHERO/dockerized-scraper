@@ -14,8 +14,6 @@ var casper = require('casper').create({
   }
 });
 
-var envs = require('system').env;
-
 var basicSelectorDictionary = {
   developmentPlanAreas: 'span[id^="Description_713925_734875"]',
   floodZones: 'span[id^="Description_713925_734356"]',
@@ -74,18 +72,18 @@ var posseSelectorDictionary = {
   numberRoomsDeleted: 'span[id^="NumRoomsDel_713848_"]',
   locationPermitCreated: 'span[id^="LocationJobCreated_713848_"]',
   locationPermitIssued: 'span[id^="LocationPermitIssued_713848_"]',
-  otherWork: 'span[id^="OtherWork_713849_"]',
-  drivewayTypes: 'span[id^="DrivewayTypes_713850_"]',
-  lenOfDriveway: 'span[id^="DrivewayLength_713850_"]',
-  sidewalkTypes: 'span[id^="SidewalkTypes_713850_"]',
-  lenOfSidewalk: 'span[id^="SidewalkLength_713850_"]',
-  curbingTypes: 'span[id^="CurbingTypes_713850_"]',
-  lenOfCurbing: 'span[id^="CurbingLength_713850_"]',
-  numShowersToReplace: 'span[id^="ShowerCount_713850_"]',
-  numFaucetsToReplace: 'span[id^="FaucetCount_713850_"]',
-  numUrinalsToReplace: 'span[id^="UrinalNotobeReplaced_713850_"]',
-  numToiletsToReplace: 'span[id^="ToiletCount_713850_"]',
-  sewerConnectionPermitNo: 'span[id^="SewerConnPermitNo_713850_"]',
+    otherWork: 'span[id^="OtherWork_713849_"]',
+    drivewayTypes: 'span[id^="DrivewayTypes_713850_"]',
+    lenOfDriveway: 'span[id^="DrivewayLength_713850_"]',
+    sidewalkTypes: 'span[id^="SidewalkTypes_713850_"]',
+    lenOfSidewalk: 'span[id^="SidewalkLength_713850_"]',
+    curbingTypes: 'span[id^="CurbingTypes_713850_"]',
+    lenOfCurbing: 'span[id^="CurbingLength_713850_"]',
+    numShowersToReplace: 'span[id^="ShowerCount_713850_"]',
+    numFaucetsToReplace: 'span[id^="FaucetCount_713850_"]',
+    numUrinalsToReplace: 'span[id^="UrinalNotobeReplaced_713850_"]',
+    numToiletsToReplace: 'span[id^="ToiletCount_713850_"]',
+    sewerConnectionPermitNo: 'span[id^="SewerConnPermitNo_713850_"]',
 };
 
 var posseButtons = {
@@ -131,6 +129,32 @@ var posseButtons = {
     occupancyIndustrial: 'input[id^="OccupancyGroupIndustrial_713850_"]',
     occupancyResidential: 'input[id^="OccupancyGroupResidential_713850_"]',
 };
+
+function processPermitLink(self, link, form) {
+  self.thenOpen('http:' + link, function () {
+
+    var permit = form;
+
+    permit['link'] = link;
+    // Parsing the permit
+    for (var key in posseSelectorDictionary) {
+      permit[key] = this.fetchText(posseSelectorDictionary[key]);
+    }
+    for (var key in posseButtons) {
+      permit[key] = this.getElementAttribute(posseButtons[key], 'value');
+    }
+    console.log('Collected permit: ', permit.applicationNumber);
+
+    var postAddress = process.env.DOCKER_SERVER + '/permits/' + String(permit.applicationNumber);
+
+    this.then(function () {
+      this.thenOpen(postAddress, {
+        method: 'post',
+        data: permit // this data is json of a permit
+      });
+    });
+  });
+}
 
 function processTMK(link, self) {
   var posseId = 0;
@@ -183,30 +207,7 @@ function processTMK(link, self) {
 
     this.each(links, function (self, link) {
       console.log('link in process: ', link);
-
-      self.thenOpen('http:' + link, function () {
-
-        var permit = form;
-
-        permit['link'] = link;
-        // Parsing the permit
-        for (var key in posseSelectorDictionary) {
-          permit[key] = this.fetchText(posseSelectorDictionary[key]);
-        }
-        for (var key in posseButtons) {
-          permit[key] = this.getElementAttribute(posseButtons[key], 'value');
-        }
-        console.log('Collected permit: ', permit.applicationNumber);
-
-        var postAddress = envs.REST + '/permits/' + String(permit.applicationNumber);
-
-        this.then(function () {
-          this.thenOpen(postAddress, {
-            method: 'post',
-            data: permit // this data is json of a permit
-          });
-        });
-      });
+      processPermitLink(self, link, form);
     });
   });
 }
@@ -221,9 +222,9 @@ function parse(N) {
 
       var link = '';
 
-      var postLink = envs.REST + '/shorttmks';
+      var postLink = process.env.DOCKER_SERVER + '/shorttmks';
 
-      self.thenOpen(postLink, {
+      self.thenOpen( postLink, {
           method: 'get',
           enctype: 'application/json'
       },  function () {
@@ -236,5 +237,6 @@ function parse(N) {
   casper.run();
 }
 
-var N = 20000;
+var N = 200000;
+
 parse(N);

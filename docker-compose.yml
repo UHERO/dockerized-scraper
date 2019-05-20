@@ -14,9 +14,9 @@ services:
 
   scraper:
     image: scrimage
-    environment:
-      - "REST=http://rest:8081"
+    links:
+      - "restimage:rest"
     depends_on:
       - "rest"
     deploy:
-      replicas: 3
+      replicas: 10
