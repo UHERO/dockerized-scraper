@@ -2,7 +2,7 @@ module.exports = function(app, db) {
   app.get('/shorttmks', (req, res) => {
     const parsingDeadline = new Date();
 
-    // parsingDeadline.setMonth(parsingDeadline.getMonth() - 6);
+    parsingDeadline.setMonth(parsingDeadline.getMonth() - 1);
 
     db.collection('shorttmks').findAndModify(
       {$or: [{parsed: false}, {lastParsed: {$lte: parsingDeadline}}]},
@@ -13,7 +13,6 @@ module.exports = function(app, db) {
         if (err) {
           res.send({error: err});
         } else {
-          console.log(tmk);
           res.send({data: tmk.value});
         }
       }

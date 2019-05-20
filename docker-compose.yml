@@ -1,9 +1,22 @@
-version: "3.7"
-
+version: "3"
 services:
-  scraper:
-    image: scrimage:latest
+  rest:
+    image: restimage
     environment:
-      REST: '172.17.0.1:8081'
+      - "MONGO_USER=${MONGO_USER}"
+      - "MONGO_URL=${MONGO_URL}"
+      - "MONGO_PASS=${MONGO_PASS}"
+      - "DOCKER_SERVER=${DOCKER_SERVER}"
     deploy:
       replicas: 1
+    ports:
+      - "8081:8081"
+
+  scraper:
+    image: scrimage
+    environment:
+      - "REST=http://rest:8081"
+    depends_on:
+      - "rest"
+    deploy:
+      replicas: 3

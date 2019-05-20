@@ -223,11 +223,10 @@ function parse(N) {
 
       var postLink = envs.REST + '/shorttmks';
 
-      self.thenOpen( postLink, {
+      self.thenOpen(postLink, {
           method: 'get',
           enctype: 'application/json'
       },  function () {
-        console.log(casper.getPageContent());
         link = JSON.parse(casper.getPageContent()).data;
         processTMK(link, self);
       });
@@ -238,5 +237,4 @@ function parse(N) {
 }
 
 var N = 20000;
-
 parse(N);
